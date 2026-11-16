@@ -16,51 +16,47 @@ const List<String> listaCursos = <String>[
 ];
 
 // Variável responsável pelo armazenamento do valor no Droplist
-var valorDrop;
+String? valorDrop;
 
 class Cadastro extends StatefulWidget {
-  const Cadastro({Key? key}) : super(key: key);
+  const Cadastro({super.key});
 
   @override
   State<Cadastro> createState() => _CadastroState();
 }
 
 class _CadastroState extends State<Cadastro> {
-  TextEditingController inputMatricula = new TextEditingController();
-  TextEditingController inputEmail = new TextEditingController();
-  TextEditingController inputSenha = new TextEditingController();
+  TextEditingController inputMatricula = TextEditingController();
+  TextEditingController inputEmail = TextEditingController();
+  TextEditingController inputSenha = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          width: double.infinity,
-          // Background da aplicação
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('images/background.jpg'),
-              fit: BoxFit.cover,
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        // Background da aplicação
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('images/background.jpg'),
+            fit: BoxFit.cover,
           ),
+        ),
+        child: SingleChildScrollView(
           child: Column(
             children: [
               // Container da imagem (Logo)
-              Container(
-                // Logo do topo da página
-                child: Image.asset(
-                  'images/logo_catolica_branca.png',
-                  width: 300,
-                  height: 170,
-                ),
+              Image.asset(
+                'images/logo_catolica_branca.png',
+                width: 300,
+                height: 170,
               ),
 
-              Container(
-                child: Image.asset(
-                  'images/logo_mhc_branca.png',
-                  width: 90,
-                  height: 100,
-                ),
+              Image.asset(
+                'images/logo_mhc_branca.png',
+                width: 90,
+                height: 100,
               ),
 
               Container(
@@ -207,11 +203,11 @@ class _CadastroState extends State<Cadastro> {
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Colors.white,
+                          backgroundColor: Colors.white,
                           padding: const EdgeInsets.fromLTRB(125, 15, 125, 15),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30)),
-                          onPrimary: Color(0xFF720507),
+                          foregroundColor: Color(0xFF720507),
                         ),
                         onPressed: () {
                           Navigator.push(

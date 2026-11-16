@@ -1,9 +1,6 @@
 import 'package:catolica_mhc/pages_black_mode/esqueceusenha_dm.dart';
 import 'package:catolica_mhc/pages_black_mode/login_dm.dart';
-import 'package:catolica_mhc/pages_default/esqueceusenha.dart';
-import 'package:catolica_mhc/pages_default/login.dart';
 import 'package:flutter/material.dart';
-
 
 // Lista de cursos teste apenas para fins de estilização
 const List<String> listaCursos = <String>[
@@ -18,51 +15,47 @@ const List<String> listaCursos = <String>[
 ];
 
 // Variável responsável pelo armazenamento do valor no Droplist
-var valorDrop;
+String? valorDrop;
 
 class CadastroDM extends StatefulWidget {
-  const CadastroDM({Key? key}) : super(key: key);
+  const CadastroDM({super.key});
 
   @override
   State<CadastroDM> createState() => _CadastroDMState();
 }
 
 class _CadastroDMState extends State<CadastroDM> {
-  TextEditingController inputMatricula = new TextEditingController();
-  TextEditingController inputEmail = new TextEditingController();
-  TextEditingController inputSenha = new TextEditingController();
+  TextEditingController inputMatricula = TextEditingController();
+  TextEditingController inputEmail = TextEditingController();
+  TextEditingController inputSenha = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          width: double.infinity,
-          // Background da aplicação
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('images/background_dark_mode.jpg'),
-              fit: BoxFit.cover,
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        // Background da aplicação
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('images/background_dark_mode.jpg'),
+            fit: BoxFit.cover,
           ),
+        ),
+        child: SingleChildScrollView(
           child: Column(
             children: [
               // Container da imagem (Logo)
-              Container(
-                // Logo do topo da página
-                child: Image.asset(
-                  'images/logo_catolica_branca.png',
-                  width: 300,
-                  height: 170,
-                ),
+              Image.asset(
+                'images/logo_catolica_branca.png',
+                width: 300,
+                height: 170,
               ),
 
-              Container(
-                child: Image.asset(
-                  'images/logo_mhc_branca.png',
-                  width: 90,
-                  height: 100,
-                ),
+              Image.asset(
+                'images/logo_mhc_branca.png',
+                width: 90,
+                height: 100,
               ),
 
               Container(
@@ -172,8 +165,7 @@ class _CadastroDMState extends State<CadastroDM> {
                               color: Colors.white,
                               fontSize: 18,
                               fontFamily: 'Alada',
-                            fontWeight: FontWeight.bold
-                          ),
+                              fontWeight: FontWeight.bold),
                         ),
                       ),
                       DropdownButton<String>(
@@ -184,8 +176,7 @@ class _CadastroDMState extends State<CadastroDM> {
                             color: Colors.white,
                             fontSize: 16,
                             fontFamily: 'Alada',
-                            fontWeight: FontWeight.bold
-                        ),
+                            fontWeight: FontWeight.bold),
                         dropdownColor: Colors.black,
                         iconEnabledColor: Colors.white,
                         borderRadius: BorderRadius.all(Radius.circular(30)),
@@ -210,11 +201,11 @@ class _CadastroDMState extends State<CadastroDM> {
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          primary: Colors.white,
+                          backgroundColor: Colors.white,
                           padding: const EdgeInsets.fromLTRB(125, 15, 125, 15),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30)),
-                          onPrimary: Color(0xFF720507),
+                          foregroundColor: Color(0xFF720507),
                         ),
                         onPressed: () {
                           Navigator.push(

@@ -1,179 +1,325 @@
 import 'package:catolica_mhc/pages_default/certificados.dart';
-import 'package:catolica_mhc/services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 
-import '../functions/appLogic.dart';
+import '../functions/app_logic.dart';
 import '../pages_default/notificacoes.dart';
 import 'db_firestore.dart';
 
 List<Map<String, String>> listaComDadosDosEstudantes = <Map<String, String>>[];
 List<Map<String, String>> listaEstudanteAtual = <Map<String, String>>[];
 
+// Trecho de seed inicial comentado após popular o Firestore.
+// Caso precise popular um banco vazio no primeiro login, basta descomentar este bloco
+// e a chamada dentro de getMatriculaUsuario.
+/*
+Future<void>? _pendingUserLoad;
+String? _pendingUserEmail;
+
+Future<void> _seedInitialCertificatesIfNeeded(
+    FirebaseFirestore db, int matricula) async {
+  final existingCerts = await db
+      .collection("certificados_mhc")
+      .where('cert_numero_de_matricula_usu', isEqualTo: matricula)
+      .limit(1)
+      .get();
+
+  if (existingCerts.docs.isNotEmpty) return;
+
+  final sampleCerts = <Map<String, dynamic>>[
+    {
+      'cert_id': 1,
+      'cert_titulo': 'Estágio em Desenvolvimento Mobile',
+      'cert_instituicao': 'Católica SC',
+      'cert_carga_horaria': 80.0,
+      'cert_tipo_certificado': 'Estágio',
+      'cert_status': 'Aprovado',
+      'cert_situacao_do_certificado': 'Certificado validado',
+      'cert_coord_obs': 'Horas de estágio contabilizadas com sucesso.',
+      'cert_img': '',
+      'cert_numero_de_matricula_usu': matricula,
+    },
+    {
+      'cert_id': 2,
+      'cert_titulo': 'Semana Acadêmica de Engenharia de Software',
+      'cert_instituicao': 'Católica SC',
+      'cert_carga_horaria': 30.0,
+      'cert_tipo_certificado': 'Palestra',
+      'cert_status': 'Aprovado',
+      'cert_situacao_do_certificado': 'Certificado validado',
+      'cert_coord_obs': 'Participação confirmada pela coordenação.',
+      'cert_img': '',
+      'cert_numero_de_matricula_usu': matricula,
+    },
+    {
+      'cert_id': 3,
+      'cert_titulo': 'Hackathon Inovação & Cloud',
+      'cert_instituicao': 'Católica SC',
+      'cert_carga_horaria': 25.0,
+      'cert_tipo_certificado': 'Outros',
+      'cert_status': 'Enviado',
+      'cert_situacao_do_certificado': 'Aguardando confirmação',
+      'cert_coord_obs': 'Em análise pela coordenação do curso.',
+      'cert_img': '',
+      'cert_numero_de_matricula_usu': matricula,
+    },
+    {
+      'cert_id': 4,
+      'cert_titulo': 'Workshop Flutter & Firebase na Prática',
+      'cert_instituicao': 'GDG Joinville',
+      'cert_carga_horaria': 15.0,
+      'cert_tipo_certificado': 'Palestra',
+      'cert_status': 'Aprovado',
+      'cert_situacao_do_certificado': 'Pendente',
+      'cert_coord_obs': '',
+      'cert_img': '',
+      'cert_numero_de_matricula_usu': matricula,
+    },
+  ];
+
+  for (final cert in sampleCerts) {
+    await db.collection("certificados_mhc").add(cert);
+  }
+}
+
+Future<void> _ensureUserAndSeedData(FirebaseFirestore db, String email) async {
+  final existingUser = await db
+      .collection("usuarios_mhc")
+      .where('usu_email', isEqualTo: email)
+      .limit(1)
+      .get();
+
+  if (existingUser.docs.isNotEmpty) {
+    final data = existingUser.docs.first.data();
+    final matricula = (data['usu_num_matricula'] as num?)?.toInt() ?? 6274821;
+    await _seedInitialCertificatesIfNeeded(db, matricula);
+    return;
+  }
+
+  // Aproveita dados da coleção `aluno` se já existir para o e-mail logado
+  final alunoQuery = await db
+      .collection("aluno")
+      .where('emailAluno', isEqualTo: email)
+      .limit(1)
+      .get();
+
+  String nome = 'Davi';
+  String sobrenome = 'Ferreira';
+  String curso = 'Engenharia de Software';
+  int matricula = 6274821;
+  String senha = '';
+
+  if (alunoQuery.docs.isNotEmpty) {
+    final aluno = alunoQuery.docs.first.data();
+    nome = aluno['primeiroNome']?.toString() ?? nome;
+    sobrenome = aluno['ultimoNome']?.toString() ?? sobrenome;
+    curso = aluno['nomeCurso']?.toString() ?? curso;
+    matricula = (aluno['codMatricula'] as num?)?.toInt() ?? matricula;
+    senha = aluno['senhaAluno']?.toString() ?? '';
+  }
+
+  await db.collection("usuarios_mhc").add({
+    'usu_curso': curso,
+    'usu_email': email,
+    'usu_img_perfil': '',
+    'usu_nome': nome,
+    'usu_num_matricula': matricula,
+    'usu_senha': senha,
+    'usu_sobrenome': sobrenome,
+    'usu_telefone': '(47) 99999-9999',
+  });
+
+  await _seedInitialCertificatesIfNeeded(db, matricula);
+}
+*/
+
 Future getMatriculaUsuario(
     String? email,
-    List<String> usu_curso,
-    List<String> usu_email,
-    List<String> usu_img_perfil,
-    List<String> usu_nome,
-    List<String> usu_senha,
-    List<int> usu_num_matricula,
-    List<String> usu_sobrenome,
-    List<String> usu_telefone) async {
+    List<String> usuCurso,
+    List<String> usuEmail,
+    List<String> usuImgPerfil,
+    List<String> usuNome,
+    List<String> usuSenha,
+    List<int> usuNumMatricula,
+    List<String> usuSobrenome,
+    List<String> usuTelefone) async {
+  if (email == null || email.isEmpty) return;
 
-  FirebaseFirestore db = await DBFirestore.get();
-  final QuerySnapshot result = await db.collection("usuarios_mhc").where('usu_email', isEqualTo: email).get();
+  FirebaseFirestore db = DBFirestore.get();
+
+  /*
+  if (_pendingUserLoad == null || _pendingUserEmail != email) {
+    _pendingUserEmail = email;
+    _pendingUserLoad = _ensureUserAndSeedData(db, email).whenComplete(() {
+      _pendingUserLoad = null;
+    });
+  }
+  await _pendingUserLoad;
+  */
+
+  final QuerySnapshot result = await db
+      .collection("usuarios_mhc")
+      .where('usu_email', isEqualTo: email)
+      .get();
   final List<DocumentSnapshot> documents = result.docs;
 
-  documents.forEach((element) {
-    usu_curso.add(element.get('usu_curso'));
-    usu_email.add(element.get('usu_email'));
-    usu_img_perfil.add(element.get('usu_img_perfil'));
-    usu_nome.add(element.get('usu_nome'));
-    usu_senha.add(element.get('usu_senha'));
-    usu_num_matricula.add(element.get('usu_num_matricula'));
-    usu_sobrenome.add(element.get('usu_sobrenome'));
-    usu_telefone.add(element.get('usu_telefone'));
-  });
+  usuCurso.clear();
+  usuEmail.clear();
+  usuImgPerfil.clear();
+  usuNome.clear();
+  usuSenha.clear();
+  usuNumMatricula.clear();
+  usuSobrenome.clear();
+  usuTelefone.clear();
+
+  for (final element in documents) {
+    usuCurso.add(element.get('usu_curso')?.toString() ?? '');
+    usuEmail.add(element.get('usu_email')?.toString() ?? '');
+    usuImgPerfil.add(element.get('usu_img_perfil')?.toString() ?? '');
+    usuNome.add(element.get('usu_nome')?.toString() ?? '');
+    usuSenha.add(element.get('usu_senha')?.toString() ?? '');
+    usuNumMatricula
+        .add((element.get('usu_num_matricula') as num?)?.toInt() ?? 0);
+    usuSobrenome.add(element.get('usu_sobrenome')?.toString() ?? '');
+    usuTelefone.add(element.get('usu_telefone')?.toString() ?? '');
+  }
 }
 
 Future alterarSituacaoCertificado(List<int> idListNotificacoes) async {
-  await getMatriculaUsuario(email, usu_curso, usu_email, usu_img_perfil, usu_nome, usu_senha, usu_num_matricula, usu_sobrenome, usu_telefone);
-  FirebaseFirestore db = await DBFirestore.get();
-  final QuerySnapshot result = await db.collection('certificados_mhc').where('cert_id',
-      isEqualTo:idListNotificacoes[indexDoCertificadoSelecionadoNotificacoes]).get();
+  await getMatriculaUsuario(
+      email,
+      usuCurso,
+      usuEmail,
+      usuImgPerfil,
+      usuNome,
+      usuSenha,
+      usuNumMatricula,
+      usuSobrenome,
+      usuTelefone);
+  FirebaseFirestore db = DBFirestore.get();
+  final QuerySnapshot result = await db
+      .collection('certificados_mhc')
+      .where('cert_id',
+          isEqualTo:
+              idListNotificacoes[indexDoCertificadoSelecionadoNotificacoes])
+      .get();
   final List<DocumentSnapshot> documents = result.docs;
 
-  int idCertificadoNotificacoes = idListNotificacoes[indexDoCertificadoSelecionadoNotificacoes];
+  int idCertificadoNotificacoes =
+      idListNotificacoes[indexDoCertificadoSelecionadoNotificacoes];
 
-  documents.forEach((element) async {
-    if(element.get('cert_id') == idCertificadoNotificacoes){
-      String name_doc = result.docs.first.id;
-      await db.collection('certificados_mhc').doc(name_doc).update({
-        'cert_situacao_do_certificado': 'Pendente'
-      }).then((value) => print("Documento Atualizado para Pendente"),
-        onError: (e) => print("Erro atualizando o documento: $e"),);
+  for (final element in documents) {
+    if (element.get('cert_id') == idCertificadoNotificacoes) {
+      String nameDoc = element.id;
+      await db
+          .collection('certificados_mhc')
+          .doc(nameDoc)
+          .update({'cert_situacao_do_certificado': 'Pendente'}).then(
+        (value) => debugPrint("Documento Atualizado para Pendente"),
+        onError: (e) => debugPrint("Erro atualizando o documento: $e"),
+      );
     }
-  });
+  }
 }
 
-void editarPerfil(String novo_numero_tel) async {
-  FirebaseFirestore db = await DBFirestore.get();
-  await getMatriculaUsuario(email,
-      usu_curso,
-      usu_email,
-      usu_img_perfil,
-      usu_nome,
-      usu_senha,
-      usu_num_matricula,
-      usu_sobrenome,
-      usu_telefone);
+Future<void> editarPerfil(String novoNumeroTel) async {
+  FirebaseFirestore db = DBFirestore.get();
+  await getMatriculaUsuario(
+      email,
+      usuCurso,
+      usuEmail,
+      usuImgPerfil,
+      usuNome,
+      usuSenha,
+      usuNumMatricula,
+      usuSobrenome,
+      usuTelefone);
 
-  final QuerySnapshot result = await db.collection('usuarios_mhc').where('usu_email', isEqualTo: email).get();
+  final QuerySnapshot result = await db
+      .collection('usuarios_mhc')
+      .where('usu_email', isEqualTo: email)
+      .get();
   final List<DocumentSnapshot> documents = result.docs;
 
-  String nome_doc;
-
-  documents.forEach((element) async {
-    if(element.get('usu_email') == usu_email[0]) {
-      nome_doc = result.docs.first.id;
-      await db.collection('usuarios_mhc').doc(nome_doc).update({
-            'usu_telefone': novo_numero_tel,
-          }
-      ).then((value) => print("Documento Atualizado"),
-          onError: (e) => print("Erro atualizando o documento: $e"),);
+  for (final element in documents) {
+    if (usuEmail.isNotEmpty && element.get('usu_email') == usuEmail[0]) {
+      final String nomeDoc = element.id;
+      await db.collection('usuarios_mhc').doc(nomeDoc).update({
+        'usu_telefone': novoNumeroTel,
+      }).then(
+        (value) => debugPrint("Documento Atualizado"),
+        onError: (e) => debugPrint("Erro atualizando o documento: $e"),
+      );
     }
-  });
-
+  }
 }
 
-void deletarCertificado(List<int> idListCertificado) async {
-  FirebaseFirestore db = await DBFirestore.get();
+Future<void> deletarCertificado(List<int> idListCertificado) async {
+  FirebaseFirestore db = DBFirestore.get();
   final QuerySnapshot result = await db.collection("certificados_mhc").get();
   final List<DocumentSnapshot> documents = result.docs;
 
-  int idCertificado = idListCertificado[indexDoCertificadoSelecionadoCertificados];
+  int idCertificado =
+      idListCertificado[indexDoCertificadoSelecionadoCertificados];
 
-  String nome_doc;
-
-  documents.forEach((element) async {
-    if(element.get('cert_id') == idCertificado){
-      //result.docs.first.data();
-      nome_doc = result.docs.first.id;
-      await db.collection('certificados_mhc').doc(nome_doc).delete()
-          .then((value) => print("Documento deletado"),
-          onError: (e) => print("Erro deletando o documento: $e"),);
+  for (final element in documents) {
+    if (element.get('cert_id') == idCertificado) {
+      final String nomeDoc = element.id;
+      await db.collection('certificados_mhc').doc(nomeDoc).delete().then(
+            (value) => debugPrint("Documento deletado"),
+            onError: (e) => debugPrint("Erro deletando o documento: $e"),
+          );
     }
-  });
-
+  }
 }
 
-void addCertificado(
-    double cert_carga_horaria,
-    String cert_img,
-    String cert_instituicao,
-    String cert_tipo_certificado,
-    String cert_titulo) async {
-  FirebaseFirestore db = await DBFirestore.get();
-  await getMatriculaUsuario(email,
-      usu_curso,
-      usu_email,
-      usu_img_perfil,
-      usu_nome,
-      usu_senha,
-      usu_num_matricula,
-      usu_sobrenome,
-      usu_telefone);
+Future<void> addCertificado(
+    double certCargaHoraria,
+    String certImg,
+    String certInstituicao,
+    String certTipoCertificado,
+    String certTitulo) async {
+  FirebaseFirestore db = DBFirestore.get();
+  await getMatriculaUsuario(
+      email,
+      usuCurso,
+      usuEmail,
+      usuImgPerfil,
+      usuNome,
+      usuSenha,
+      usuNumMatricula,
+      usuSobrenome,
+      usuTelefone);
   // Referencia ao documento remoto
   final QuerySnapshot result = await db.collection("certificados_mhc").get();
   final List<DocumentSnapshot> documents = result.docs;
-  int id_do_certificado_novo = 1;
+  int maxId = 0;
 
-  documents.forEach((element) {
-    id_do_certificado_novo++;
-  });
+  for (final element in documents) {
+    final currentId = (element.get('cert_id') as num?)?.toInt() ?? 0;
+    if (currentId > maxId) {
+      maxId = currentId;
+    }
+  }
+  final int idDoCertificadoNovo = maxId + 1;
 
-  var docRef = await db.collection("certificados_mhc");
+  var docRef = db.collection("certificados_mhc");
 
-  docRef
+  await docRef
       .doc()
       .set({
-        'cert_carga_horaria': cert_carga_horaria,
+        'cert_carga_horaria': certCargaHoraria,
         'cert_coord_obs': '',
-        'cert_id': id_do_certificado_novo,
-        'cert_img': cert_img,
-        'cert_instituicao': cert_instituicao,
-        'cert_numero_de_matricula_usu': usu_num_matricula[0],
+        'cert_id': idDoCertificadoNovo,
+        'cert_img': certImg,
+        'cert_instituicao': certInstituicao,
+        'cert_numero_de_matricula_usu':
+            usuNumMatricula.isNotEmpty ? usuNumMatricula[0] : 0,
         'cert_situacao_do_certificado': 'Enviado',
         'cert_status': 'Enviado',
-        'cert_tipo_certificado': cert_tipo_certificado,
-        'cert_titulo': cert_titulo
+        'cert_tipo_certificado': certTipoCertificado,
+        'cert_titulo': certTitulo
       })
-      .then((value) => print("Deu certo!"))
-      .catchError((error) => print('Deu errado :( $error'));
+      .then((value) => debugPrint("Deu certo!"))
+      .catchError((error) => debugPrint('Deu errado :( $error'));
 }
-
-/*
-  Adição de usuários é somente feita pela católica
- */
-// void addUsuario() async {
-//   FirebaseFirestore db = await DBFirestore.get();
-//
-//   var docRef = await db.collection('usuarios_mhc');
-//
-//   docRef
-//       .doc()
-//       .set({
-//         'usu_curso': 'Engenharia de Software',
-//         'usu_email': email,
-//         'usu_img_perfil': 'https:// aaaaa',
-//         'usu_nome': 'Davi',
-//         'usu_num_matricula': 1315684,
-//         'usu_senha': 'a37476davi',
-//         'usu_sobrenome': 'Prudente Ferreira',
-//         'usu_telefone': '(47) 99958-5464'
-//       })
-//       .then((value) => print("Deu certo!"))
-//       .catchError((error) => print('Deu errado :( $error'));
-// }

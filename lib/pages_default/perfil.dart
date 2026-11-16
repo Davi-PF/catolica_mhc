@@ -1,19 +1,19 @@
 import 'dart:io';
+
 import 'package:catolica_mhc/database/db_functions.dart';
+import 'package:catolica_mhc/funcionalidades/cruds/entities/usuarios_crud.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:catolica_mhc/funcionalidades/cruds/entities/UsuariosCrud.dart';
-import '../application/checkAuth.dart';
-import '../functions/appLogic.dart';
-import '../functions/imageWidget.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../application/check_auth.dart';
+import '../functions/app_logic.dart';
+import '../functions/image_widget.dart';
 import '../services/auth_service.dart';
 import 'certificados.dart';
-import 'enviarCertificados.dart';
-import 'login.dart';
+import 'enviar_certificados.dart';
 import 'notificacoes.dart';
-import 'dashBoard.dart';
-import 'package:image_picker/image_picker.dart';
 
 Widget buildCircle({
   required Widget child,
@@ -43,19 +43,18 @@ Widget buildEditIcon(Color color) => buildCircle(
     );
 
 class Perfil extends StatefulWidget {
-  const Perfil({Key? key}) : super(key: key);
+  const Perfil({super.key});
 
   @override
   State<Perfil> createState() => _PerfilState();
 }
 
 class _PerfilState extends State<Perfil> {
-
   Icon iconeFloatingButton = Icon(Icons.add);
   bool _activateFieldPhone = false;
   File? image; // Variável de armazenamento local
 
-  void ShowModal(BuildContext context) {
+  void _showModal(BuildContext context) {
     //code to execute on button press
     //botao aparece as coisas
     showModalBottomSheet<void>(
@@ -65,7 +64,7 @@ class _PerfilState extends State<Perfil> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(50))),
       backgroundColor: Color.fromRGBO(255, 255, 255, 1),
       builder: (BuildContext context) {
-        return Container(
+        return SizedBox(
           height: 200,
           child: Center(
             child: FractionallySizedBox(
@@ -73,29 +72,27 @@ class _PerfilState extends State<Perfil> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Container(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          elevation: 2,
-                          shape: StadiumBorder(),
-                          minimumSize: Size(300, 43),
-                          maximumSize: Size(300, 43),
-                          backgroundColor: Colors.red[900]),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Icon(Icons.add_chart_sharp),
-                          Text("Inserir certificado     ",
-                              style: TextStyle(fontSize: 20)),
-                        ],
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => EnviarCertificados()));
-                      },
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        elevation: 2,
+                        shape: StadiumBorder(),
+                        minimumSize: Size(300, 43),
+                        maximumSize: Size(300, 43),
+                        backgroundColor: Colors.red[900]),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Icon(Icons.add_chart_sharp),
+                        Text("Inserir certificado     ",
+                            style: TextStyle(fontSize: 20)),
+                      ],
                     ),
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => EnviarCertificados()));
+                    },
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -170,51 +167,62 @@ class _PerfilState extends State<Perfil> {
       final imageTemporary = File(image.path);
       setState(() => this.image = imageTemporary);
     } on PlatformException catch (e) {
-      print('Falha na obtenção da imagem: $e');
+      debugPrint('Falha na obtenção da imagem: $e');
     }
   }
 
   UsuariosCrud user = UsuariosCrud(
       0,
       // ^^ Matricula
-      usu_nome[0],
-      usu_sobrenome[0],
-      email!,
-      usu_senha[0],
-      usu_curso[0],
-      usu_telefone[0],
-      usu_img_perfil[0]);
+      usuNome.isNotEmpty ? usuNome[0] : '',
+      usuSobrenome.isNotEmpty ? usuSobrenome[0] : '',
+      email ?? '',
+      usuSenha.isNotEmpty ? usuSenha[0] : '',
+      usuCurso.isNotEmpty ? usuCurso[0] : '',
+      usuTelefone.isNotEmpty ? usuTelefone[0] : '',
+      usuImgPerfil.isNotEmpty ? usuImgPerfil[0] : '');
 
   Future<UsuariosCrud> getDataUser() async {
-    await getMatriculaUsuario(email, usu_curso, usu_email, usu_img_perfil, usu_nome, usu_senha, usu_num_matricula, usu_sobrenome, usu_telefone);
-    user.usu_nome;
-    user.usu_sobrenome;
-    user.usu_email;
-    user.usu_senha;
-    user.usu_curso;
-    user.uso_telefone;
-    user.uso_img_perfil;
+    await getMatriculaUsuario(email, usuCurso, usuEmail, usuImgPerfil,
+        usuNome, usuSenha, usuNumMatricula, usuSobrenome, usuTelefone);
+    user = UsuariosCrud(
+      usuNumMatricula.isNotEmpty ? usuNumMatricula[0] : 0,
+      usuNome.isNotEmpty ? usuNome[0] : '',
+      usuSobrenome.isNotEmpty ? usuSobrenome[0] : '',
+      email ?? '',
+      usuSenha.isNotEmpty ? usuSenha[0] : '',
+      usuCurso.isNotEmpty ? usuCurso[0] : '',
+      usuTelefone.isNotEmpty ? usuTelefone[0] : '',
+      usuImgPerfil.isNotEmpty ? usuImgPerfil[0] : '',
+    );
+    _controllerPhone.text = user.usoTelefone;
+    _controllerEmail.text = user.usuEmail;
+    _controllerPassword.text = user.usuSenha;
+    if (mounted) {
+      setState(() {});
+    }
     return user;
   }
 
   // initialize the controllers
-  TextEditingController _controllerPhone = TextEditingController();
-  TextEditingController _controllerEmail = TextEditingController();
-  TextEditingController _controllerPassword = TextEditingController();
+  final TextEditingController _controllerPhone = TextEditingController();
+  final TextEditingController _controllerEmail = TextEditingController();
+  final TextEditingController _controllerPassword = TextEditingController();
 
+  @override
   void initState() {
     super.initState();
     getDataUser();
-    _controllerPhone.text = user.uso_telefone ?? "";
-    _controllerEmail.text = user.usu_email ?? "";
-    _controllerPassword.text = user.usu_senha ?? "";
+    _controllerPhone.text = user.usoTelefone;
+    _controllerEmail.text = user.usuEmail;
+    _controllerPassword.text = user.usuSenha;
   }
 
   @override
   Widget build(BuildContext context) {
     final color = Color(0xFFC0090C);
-    double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
+    MediaQuery.of(context).size.height;
+    MediaQuery.of(context).size.width;
 
     bool keyboardIsOpened = MediaQuery.of(context).viewInsets.bottom != 0.0;
 
@@ -233,192 +241,192 @@ class _PerfilState extends State<Perfil> {
                   Navigator.pop(context);
                 },
               ),
-              Container(
-                child: PopupMenuButton(
-                    iconSize: 10,
-                    icon: Image.asset("images/user_icon.png",
-                        width: 80, height: 35),
-                    itemBuilder: (context) {
-                      return [
-                        PopupMenuItem(value: 0, child: Text('Logout')),
-                      ];
-                    },
-                    onSelected: (value) {
-                      if (value == 0) {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => CheckAuth()));
-                        AuthService.to.logout();
-                      }
-                    }),
-              )
+              PopupMenuButton(
+                  iconSize: 10,
+                  icon: Image.asset("images/user_icon.png",
+                      width: 80, height: 35),
+                  itemBuilder: (context) {
+                    return [
+                      PopupMenuItem(value: 0, child: Text('Logout')),
+                    ];
+                  },
+                  onSelected: (value) {
+                    if (value == 0) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => CheckAuth()));
+                      AuthService.to.logout();
+                    }
+                  })
             ],
           ),
           backgroundColor: Colors.white,
         ),
         body: SingleChildScrollView(
-          child: Container(
-              child: Column(
+          child: Column(
+                      children: [
+          Container(
+            alignment: Alignment.centerLeft,
+            margin: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+            child: const Text(
+              'Perfil',
+              textAlign: TextAlign.start,
+              style: TextStyle(
+                  color: Color(0xFF000000),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20),
+            ),
+          ),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                alignment: Alignment.centerLeft,
-                margin: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-                child: const Text(
-                  'Perfil',
-                  textAlign: TextAlign.start,
-                  style: TextStyle(
-                      color: Color(0xFF000000),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20),
-                ),
-              ),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  image != null
-                      ? ImageWidget(
-                          image: image!,
-                          onClicked: (source) => pickImage(source))
-                      : InkWell(
-                          child: Stack(
-                            children: [
-                              Transform.scale(
-                                scale: 1.1,
-                                child: CircleAvatar(
-                                    backgroundColor: Color(0xFF720507),
-                                    radius: 50.0,
-                                    backgroundImage:
-                                        AssetImage('images/user_icon.png')),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 4,
-                                child: buildEditIcon(color),
-                              )
-                            ],
-                          ),
-                          onTap: () => showImageSource(context)),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Text(
-                      user.usu_nome + " " + user.usu_sobrenome ?? "",
-                      style: TextStyle(
-                        fontSize: 30.0,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Pacifico',
-                      ),
-                    ),
-                  ),
-                  Text(
-                    user.usu_curso ?? "",
-                    /*esse ??"" significa que se n tiver valor, ele deixa nulo*/
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 20.0,
-                      fontFamily: 'Source Sans Pro',
-                    ),
-                  ),
-                  SizedBox(
-                      height: 20.0,
-                      child: Divider(
-                          color: Color(0xFF720507) /*Color(0xFFb81317),*/
-                          )),
-                  Card(
-                    child: ListTile(
-                      leading: Icon(
-                        Icons.phone,
-                        color: Color(0xFF720507),
-                      ),
-                      title: Row(
+              image != null
+                  ? ImageWidget(
+                      image: image!,
+                      onClicked: (source) => pickImage(source))
+                  : InkWell(
+                      child: Stack(
                         children: [
-                          Flexible(
-                            child: TextField(
-                              onChanged: (String value) =>
-                                  iconeFloatingButton = Icon(Icons.edit),
-                              controller: _controllerPhone,
-                              obscureText: false,
-                              enabled: _activateFieldPhone,
-                              decoration: InputDecoration(
-                                border: UnderlineInputBorder(),
-                                label: Text('Telefone'),
-                              ),
-                            ),
+                          Transform.scale(
+                            scale: 1.1,
+                            child: CircleAvatar(
+                                backgroundColor: Color(0xFF720507),
+                                radius: 50.0,
+                                backgroundImage:
+                                    AssetImage('images/user_icon.png')),
                           ),
-                          IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  if (_activateFieldPhone == false) {
-                                    _activateFieldPhone = true;
-                                  } else if (_activateFieldPhone == true &&
-                                      _controllerPhone.text !=
-                                          user.uso_telefone) {
-                                    _activateFieldPhone = true;
-                                    iconeFloatingButton = Icon(Icons.edit);
-                                  } else {
-                                    _activateFieldPhone = false;
-                                    iconeFloatingButton = Icon(Icons.add);
-                                  }
-                                });
-                              },
-                              icon: Icon(Icons.edit)),
+                          Positioned(
+                            bottom: 0,
+                            right: 4,
+                            child: buildEditIcon(color),
+                          )
                         ],
                       ),
-                    ),
+                      onTap: () => showImageSource(context)),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  "${user.usuNome} ${user.usuSobrenome}",
+                  style: TextStyle(
+                    fontSize: 30.0,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Pacifico',
                   ),
-                  Card(
-                    child: ListTile(
+                ),
+              ),
+              Text(
+                user.usuCurso,
+                /*esse ??"" significa que se n tiver valor, ele deixa nulo*/
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 20.0,
+                  fontFamily: 'Source Sans Pro',
+                ),
+              ),
+              SizedBox(
+                  height: 20.0,
+                  child: Divider(
+                      color: Color(0xFF720507) /*Color(0xFFb81317),*/
+                      )),
+              Card(
+                child: ListTile(
+                  leading: Icon(
+                    Icons.phone,
+                    color: Color(0xFF720507),
+                  ),
+                  title: Row(
+                    children: [
+                      Flexible(
+                        child: TextField(
+                          onChanged: (String value) =>
+                              iconeFloatingButton = Icon(Icons.edit),
+                          controller: _controllerPhone,
+                          obscureText: false,
+                          enabled: _activateFieldPhone,
+                          decoration: InputDecoration(
+                            border: UnderlineInputBorder(),
+                            label: Text('Telefone'),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                          onPressed: () {
+                            setState(() {
+                              if (_activateFieldPhone == false) {
+                                _activateFieldPhone = true;
+                              } else if (_activateFieldPhone == true &&
+                                  _controllerPhone.text !=
+                                      user.usoTelefone) {
+                                _activateFieldPhone = true;
+                                iconeFloatingButton = Icon(Icons.edit);
+                              } else {
+                                _activateFieldPhone = false;
+                                iconeFloatingButton = Icon(Icons.add);
+                              }
+                            });
+                          },
+                          icon: Icon(Icons.edit)),
+                    ],
+                  ),
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: Icon(
+                    Icons.account_circle,
+                    color: Color(0xFF720507),
+                  ),
+                  title: Row(
+                    children: [
+                      Flexible(
+                        child: TextField(
+                          controller: _controllerEmail,
+                          obscureText: false,
+                          enabled: false,
+                          decoration: InputDecoration(
+                            border: UnderlineInputBorder(),
+                            label: Text('Email'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Card(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    ListTile(
                       leading: Icon(
-                        Icons.account_circle,
+                        Icons.lock,
                         color: Color(0xFF720507),
                       ),
                       title: Row(
                         children: [
                           Flexible(
                             child: TextField(
-                              controller: _controllerEmail,
-                              obscureText: false,
+                              controller: _controllerPassword,
+                              obscureText: true,
                               enabled: false,
                               decoration: InputDecoration(
                                 border: UnderlineInputBorder(),
-                                label: Text('Email'),
+                                label: Text('Senha'),
                               ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  Card(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        ListTile(
-                          leading: Icon(
-                            Icons.lock,
-                            color: Color(0xFF720507),
-                          ),
-                          title: Row(
-                            children: [
-                              Flexible(
-                                child: TextField(
-                                  controller: _controllerPassword,
-                                  obscureText: true,
-                                  enabled: false,
-                                  decoration: InputDecoration(
-                                    border: UnderlineInputBorder(),
-                                    label: Text('Senha'),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
-          )),
+          ),
+                      ],
+                    ),
         ),
         floatingActionButton: keyboardIsOpened
             ? null
@@ -428,16 +436,16 @@ class _PerfilState extends State<Perfil> {
                   //code to execute on button press
 
                   // Segurança de edição
-                  if (_controllerPhone.text != user.uso_telefone) {
+                  if (_controllerPhone.text != user.usoTelefone) {
                     _activateFieldPhone = false;
                     setState(() {});
                     editarPerfil(_controllerPhone.text);
                   } else {
-                    ShowModal(context);
+                    _showModal(context);
                   }
-                },
-                child: iconeFloatingButton, //icon inside button
+                }, //icon inside button
                 backgroundColor: Color(0xFFb81317),
+                child: iconeFloatingButton,
               ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         //floating action button position to center
@@ -530,6 +538,7 @@ class _PerfilState extends State<Perfil> {
             )));
   }
 
+  @override
   void dispose() {
     _controllerPhone.dispose();
     _controllerEmail.dispose();

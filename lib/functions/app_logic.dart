@@ -1,11 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import '../pages_default/enviarCertificados.dart';
 import '../database/db_functions.dart';
 import '../services/auth_service.dart';
-
 
 /*void ShowModal(BuildContext context) {
   //code to execute on button press
@@ -77,57 +74,64 @@ import '../services/auth_service.dart';
   );
 }*/ // void show modal
 
-String? email = AuthService.to.user.email;
-List<String> usu_curso = <String>[];
-List<String> usu_email = <String>[];
-List<String> usu_img_perfil = <String>[];
-List<String> usu_nome = <String>[];
-List<String> usu_senha = <String>[];
-List<int> usu_num_matricula = <int>[];
-List<String> usu_sobrenome = <String>[];
-List<String> usu_telefone = <String>[];
+String? get email => AuthService.to.user?.email;
+List<String> usuCurso = <String>[];
+List<String> usuEmail = <String>[];
+List<String> usuImgPerfil = <String>[];
+List<String> usuNome = <String>[];
+List<String> usuSenha = <String>[];
+List<int> usuNumMatricula = <int>[];
+List<String> usuSobrenome = <String>[];
+List<String> usuTelefone = <String>[];
 
-late double somaDeCargaHorariaTeste = 0.0;
-late double somaDeCargaHorariaEstagio = 0.0;
-late double somaDeCargaHorariaPalestra = 0.0;
-late double somaDeCargaHorariaOutros = 0.0;
+double somaDeCargaHorariaTeste = 0.0;
+double somaDeCargaHorariaEstagio = 0.0;
+double somaDeCargaHorariaPalestra = 0.0;
+double somaDeCargaHorariaOutros = 0.0;
 
 List<double> somasList = <double>[];
 
 Color colorTextStyle = Color.fromRGBO(17, 17, 17, 1.0);
-Color colorTextStyle_titles = Color.fromRGBO(255, 0, 0, 1.0);
+Color colorTextStyleTitles = Color.fromRGBO(255, 0, 0, 1.0);
 
 List<Map<String, String>> listaDeMap = <Map<String, String>>[];
 
 Future getDefineDadosModal() async {
-  await getMatriculaUsuario(email, usu_curso, usu_email, usu_img_perfil, usu_nome, usu_senha, usu_num_matricula, usu_sobrenome, usu_telefone);
+  listaDeMap.clear();
+  somasList.clear();
+  somaDeCargaHorariaOutros = 0.0;
+  somaDeCargaHorariaEstagio = 0.0;
+  somaDeCargaHorariaPalestra = 0.0;
 
+  await getMatriculaUsuario(email, usuCurso, usuEmail, usuImgPerfil,
+      usuNome, usuSenha, usuNumMatricula, usuSobrenome, usuTelefone);
 
   final QuerySnapshot result = await Future.value(
       FirebaseFirestore.instance.collection("certificados_mhc").get());
   final List<DocumentSnapshot> documents = result.docs;
 
-  late List<double> carga_horariaUsuario = <double>[];
-  late List<String> tipo_certificadoUsuario = <String>[];
+  late List<double> cargaHorariausuario = <double>[];
+  late List<String> tipoCertificadousuario = <String>[];
 
   // Pra cada documento dentro da collection usuarios_mhc
-  documents.forEach((element) {
-    if (element.get("cert_numero_de_matricula_usu") == usu_num_matricula[0]) {
-      carga_horariaUsuario.add(
-          double.parse(element.get("cert_carga_horaria").toString()));
+  for (var element in documents) {
+    if (usuNumMatricula.isNotEmpty &&
+        element.get("cert_numero_de_matricula_usu") == usuNumMatricula[0]) {
+      cargaHorariausuario
+          .add(double.parse(element.get("cert_carga_horaria").toString()));
       // print("Carga Horaria: $carga_horariaUsuario");
-      tipo_certificadoUsuario.add(
-          element.get("cert_tipo_certificado").toString());
+      tipoCertificadousuario
+          .add(element.get("cert_tipo_certificado").toString());
       // print("Tipo certificado: $tipo_certificadoUsuario");
     }
-  });
+  }
 
-  if (tipo_certificadoUsuario.length == carga_horariaUsuario.length) {
-    for (int i = 0; i < tipo_certificadoUsuario.length; i++) {
+  if (tipoCertificadousuario.length == cargaHorariausuario.length) {
+    for (int i = 0; i < tipoCertificadousuario.length; i++) {
       Map<String, String> mapTemp = {};
 
-      mapTemp['tipo_certificado'] = tipo_certificadoUsuario[i];
-      mapTemp['carga_horaria'] = carga_horariaUsuario[i].toString();
+      mapTemp['tipo_certificado'] = tipoCertificadousuario[i];
+      mapTemp['carga_horaria'] = cargaHorariausuario[i].toString();
 
       listaDeMap.add(mapTemp);
     }
@@ -141,8 +145,7 @@ Future getDefineDadosModal() async {
         somaDeCargaHorariaEstagio +=
             double.parse(listaDeMap[i]['carga_horaria']!);
         //print('somaDeCargaHorariaEstagio: $somaDeCargaHorariaEstagio');
-      }
-      else if (listaDeMap[i]['tipo_certificado'] == 'Palestra') {
+      } else if (listaDeMap[i]['tipo_certificado'] == 'Palestra') {
         somaDeCargaHorariaPalestra +=
             double.parse(listaDeMap[i]['carga_horaria']!);
         //print('somaDeCargaHorariaPalestra: $somaDeCargaHorariaPalestra');
@@ -152,11 +155,12 @@ Future getDefineDadosModal() async {
     throw Exception('Não passou na validação');
   }
 
-  retornarValores(somaDeCargaHorariaOutros, somaDeCargaHorariaEstagio, somaDeCargaHorariaPalestra);
-
+  retornarValores(somaDeCargaHorariaOutros, somaDeCargaHorariaEstagio,
+      somaDeCargaHorariaPalestra);
 }
 
-void retornarValores(double somaDeCargaHorariaOutros, double somaDeCargaHorariaEstagio, double somaDeCargaHorariaPalestra) {
+void retornarValores(double somaDeCargaHorariaOutros,
+    double somaDeCargaHorariaEstagio, double somaDeCargaHorariaPalestra) {
   double somaOutros = 0.0;
   double somaEstagio = 0.0;
   double somaPalestra = 0.0;
@@ -168,18 +172,26 @@ void retornarValores(double somaDeCargaHorariaOutros, double somaDeCargaHorariaE
   somasList.add(somaOutros);
   somasList.add(somaEstagio);
   somasList.add(somaPalestra);
-
 }
 
-Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> tituloList, List<String> instituicaoList, List<String> coord_obsList, List<String> imgList, List<double> carga_horariaList, List<String> tipo_certificacaoList, List<String> statusList, int index) {
-  String tempObsCoordenador = coord_obsList[index];
+Future<void> showDialogResumoCertificado(
+    BuildContext context,
+    List<String> tituloList,
+    List<String> instituicaoList,
+    List<String> coordObslist,
+    List<String> imgList,
+    List<double> cargaHorarialist,
+    List<String> tipoCertificacaolist,
+    List<String> statusList,
+    int index) {
+  String tempObsCoordenador = coordObslist[index];
   String tempStatus = statusList[index];
 
-  if(coord_obsList[index] == "") {
+  if (coordObslist[index] == "") {
     tempObsCoordenador = "Sem observações por enquanto";
   }
 
-  if(statusList[index] == "") {
+  if (statusList[index] == "") {
     tempStatus = "Status indefinido";
   }
 
@@ -196,8 +208,7 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
           textAlign: TextAlign.center,
           style: TextStyle(color: colorTextStyle, fontWeight: FontWeight.bold),
         ),
-        content:
-        Column(
+        content: Column(
           //mainAxisSize: MainAxisSize.min, --> Deixa o pop-up menor, como um quadrado, igual o da dashboard
           children: [
             Container(
@@ -206,7 +217,7 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
                   borderRadius: BorderRadius.all(Radius.circular(25)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
+                      color: Colors.grey.withValues(alpha: 0.5),
                       spreadRadius: 5,
                       blurRadius: 7,
                       offset: Offset(0, 3), // changes position of shadow
@@ -215,13 +226,9 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.all(Radius.circular(22)),
-                  child: Image.asset(
-                      'images/certificado.jpg',
-                      height: 200,
-                      fit: BoxFit.cover
-                  ),
-                )
-            ),
+                  child: Image.asset('images/certificado.jpg',
+                      height: 200, fit: BoxFit.cover),
+                )),
             Container(
                 padding: EdgeInsets.fromLTRB(0, 20, 0, 20),
                 height: 300,
@@ -229,7 +236,7 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget> [
+                    children: <Widget>[
                       Container(
                           alignment: Alignment.centerLeft,
                           padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
@@ -239,20 +246,20 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
                             children: [
                               Text(
                                 "Titulo",
-                                style: TextStyle(color: colorTextStyle_titles, fontWeight: FontWeight.bold, fontSize: 17),
+                                style: TextStyle(
+                                    color: colorTextStyleTitles,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17),
                                 textAlign: TextAlign.start,
                               ),
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 3, 0, 3)
-                              ),
+                              Padding(padding: EdgeInsets.fromLTRB(0, 3, 0, 3)),
                               Text(
                                 tituloList[index],
                                 style: TextStyle(color: colorTextStyle),
                                 textAlign: TextAlign.start,
                               ),
                             ],
-                          )
-                      ),
+                          )),
                       Container(
                           alignment: Alignment.centerLeft,
                           padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
@@ -262,20 +269,20 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
                             children: [
                               Text(
                                 "Instituição",
-                                style: TextStyle(color: colorTextStyle_titles, fontWeight: FontWeight.bold, fontSize: 17),
+                                style: TextStyle(
+                                    color: colorTextStyleTitles,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17),
                                 textAlign: TextAlign.start,
                               ),
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 3, 0, 3)
-                              ),
+                              Padding(padding: EdgeInsets.fromLTRB(0, 3, 0, 3)),
                               Text(
                                 instituicaoList[index],
                                 style: TextStyle(color: colorTextStyle),
                                 textAlign: TextAlign.start,
                               ),
                             ],
-                          )
-                      ),
+                          )),
                       Container(
                           alignment: Alignment.centerLeft,
                           padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
@@ -285,12 +292,13 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
                             children: [
                               Text(
                                 "Observação do Coordenador",
-                                style: TextStyle(color: colorTextStyle_titles, fontWeight: FontWeight.bold, fontSize: 17),
+                                style: TextStyle(
+                                    color: colorTextStyleTitles,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17),
                                 textAlign: TextAlign.start,
                               ),
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 3, 0, 3)
-                              ),
+                              Padding(padding: EdgeInsets.fromLTRB(0, 3, 0, 3)),
                               Text(
                                 //coord_obsList[index],
                                 tempObsCoordenador,
@@ -298,8 +306,7 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
                                 textAlign: TextAlign.start,
                               ),
                             ],
-                          )
-                      ),
+                          )),
                       Container(
                           alignment: Alignment.centerLeft,
                           padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
@@ -309,20 +316,20 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
                             children: [
                               Text(
                                 "Carga horária",
-                                style: TextStyle(color: colorTextStyle_titles, fontWeight: FontWeight.bold, fontSize: 17),
+                                style: TextStyle(
+                                    color: colorTextStyleTitles,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17),
                                 textAlign: TextAlign.start,
                               ),
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 3, 0, 3)
-                              ),
+                              Padding(padding: EdgeInsets.fromLTRB(0, 3, 0, 3)),
                               Text(
-                                carga_horariaList[index].toString(),
+                                cargaHorarialist[index].toString(),
                                 style: TextStyle(color: colorTextStyle),
                                 textAlign: TextAlign.start,
                               ),
                             ],
-                          )
-                      ),
+                          )),
                       Container(
                           alignment: Alignment.centerLeft,
                           padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
@@ -332,20 +339,20 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
                             children: [
                               Text(
                                 "Tipo de certificado",
-                                style: TextStyle(color: colorTextStyle_titles, fontWeight: FontWeight.bold, fontSize: 17),
+                                style: TextStyle(
+                                    color: colorTextStyleTitles,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17),
                                 textAlign: TextAlign.start,
                               ),
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 3, 0, 3)
-                              ),
+                              Padding(padding: EdgeInsets.fromLTRB(0, 3, 0, 3)),
                               Text(
-                                tipo_certificacaoList[index],
+                                tipoCertificacaolist[index],
                                 style: TextStyle(color: colorTextStyle),
                                 textAlign: TextAlign.start,
                               ),
                             ],
-                          )
-                      ),
+                          )),
                       Container(
                           alignment: Alignment.centerLeft,
                           padding: EdgeInsets.fromLTRB(0, 10, 0, 10),
@@ -355,12 +362,13 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
                             children: [
                               Text(
                                 "Status",
-                                style: TextStyle(color: colorTextStyle_titles, fontWeight: FontWeight.bold, fontSize: 17),
+                                style: TextStyle(
+                                    color: colorTextStyleTitles,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 17),
                                 textAlign: TextAlign.start,
                               ),
-                              Padding(
-                                  padding: EdgeInsets.fromLTRB(0, 3, 0, 3)
-                              ),
+                              Padding(padding: EdgeInsets.fromLTRB(0, 3, 0, 3)),
                               Text(
                                 //statusList[index],
                                 tempStatus,
@@ -368,21 +376,16 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
                                 textAlign: TextAlign.start,
                               ),
                             ],
-                          )
-                      ),
+                          )),
                     ],
                   ),
-                )
-            )
+                ))
           ],
         ),
         actions: <Widget>[
           TextButton(
             style: TextButton.styleFrom(
-              textStyle: Theme
-                  .of(context)
-                  .textTheme
-                  .labelLarge,
+              textStyle: Theme.of(context).textTheme.labelLarge,
             ),
             child: const Text(
               'Fechar',
@@ -401,15 +404,16 @@ Future<void> ShowDialogResumoCertificado(BuildContext context, List<String> titu
 }
 
 // Dashboard
-Future<void> ShowDialogResumoDashboard(BuildContext context) async {
-
+Future<void> showDialogResumoDashboard(BuildContext context) async {
   await getDefineDadosModal();
+  if (!context.mounted) return;
 
   return showDialog<void>(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(25))),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(25))),
         backgroundColor: Color.fromRGBO(255, 255, 255, 1.0),
         title: Text(
           'Resumo',
@@ -495,5 +499,3 @@ Future<void> ShowDialogResumoDashboard(BuildContext context) async {
     },
   );
 }
-
-

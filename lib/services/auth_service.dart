@@ -4,18 +4,18 @@ import 'package:get/get.dart';
 
 
 class AuthService extends GetxController {
-  FirebaseAuth _auth = FirebaseAuth.instance;
-  Rx<User> _firebaseUser = Rx<User>();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final Rx<User?> _firebaseUser = Rx<User?>(null);
   var userIsAuthenticated = false.obs;
 
   @override
-  void onInit(){
+  void onInit() {
     super.onInit();
 
     _firebaseUser.bindStream(_auth.authStateChanges());
 
-    ever(_firebaseUser, (User user) {
-      if(user != null) {
+    ever(_firebaseUser, (User? user) {
+      if (user != null) {
         userIsAuthenticated.value = true;
       } else {
         userIsAuthenticated.value = false;
@@ -23,7 +23,7 @@ class AuthService extends GetxController {
     });
   }
 
-  User get user => _firebaseUser.value;
+  User? get user => _firebaseUser.value;
   static AuthService get to => Get.find<AuthService>();
 
   showSnack(String titulo, String erro) {

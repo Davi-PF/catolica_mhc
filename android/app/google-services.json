@@ -1,36 +1,45 @@
 {
   "project_info": {
-    "project_number": "407547194289",
-    "project_id": "catolica-mhc-database",
-    "storage_bucket": "catolica-mhc-database.appspot.com"
+    "project_number": "938445564001",
+    "project_id": "catolica-mhc",
+    "storage_bucket": "catolica-mhc.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:407547194289:android:0f9b598fd0159b9ccdeb90",
+        "mobilesdk_app_id": "1:938445564001:android:053abe92266b2b1fe12220",
         "android_client_info": {
           "package_name": "com.example.catolica_mhc"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "407547194289-8bf38gkmcurmqo8i610gpetc256uctll.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCvPev3zDvzJ-DOIzD1kZtaWG9IbB--huc"
+          "current_key": "AIzaSyBQSoh3Ezlxa4XECHC9mIUFiwwiqa4bCE8"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "407547194289-8bf38gkmcurmqo8i610gpetc256uctll.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:938445564001:android:ce90195f6f3af34ee12220",
+        "android_client_info": {
+          "package_name": "com.example.projeto_firebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQSoh3Ezlxa4XECHC9mIUFiwwiqa4bCE8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
         }
       }
     }

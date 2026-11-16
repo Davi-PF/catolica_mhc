@@ -56,11 +56,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCvPev3zDvzJ-DOIzD1kZtaWG9IbB--huc',
-    appId: '1:407547194289:android:0f9b598fd0159b9ccdeb90',
-    messagingSenderId: '407547194289',
-    projectId: 'catolica-mhc-database',
-    storageBucket: 'catolica-mhc-database.appspot.com',
+    apiKey: 'AIzaSyBQSoh3Ezlxa4XECHC9mIUFiwwiqa4bCE8',
+    appId: '1:938445564001:android:053abe92266b2b1fe12220',
+    messagingSenderId: '938445564001',
+    projectId: 'catolica-mhc',
+    storageBucket: 'catolica-mhc.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

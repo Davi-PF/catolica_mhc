@@ -1,17 +1,16 @@
 import 'package:catolica_mhc/application/config.dart';
-import 'package:catolica_mhc/pages_default/login.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import '../firebase_options.dart';
-import 'checkAuth.dart';
+import 'package:get/get.dart';
+import 'check_auth.dart';
 
-void main() async {
+Future<void> main() async {
   await initConfiguration();
 
-  runApp(MaterialApp(
+  runApp(GetMaterialApp(
     debugShowCheckedModeBanner: false,
     theme: ThemeData(
-      fontFamily: 'Alata'
+      fontFamily: 'Alata',
+      useMaterial3: false,
     ),
     home: CheckAuth(),
   ));

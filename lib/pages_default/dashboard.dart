@@ -1,20 +1,20 @@
-import 'package:catolica_mhc/application/checkAuth.dart';
+import 'package:catolica_mhc/application/check_auth.dart';
 import 'package:catolica_mhc/database/db_functions.dart';
-import 'package:catolica_mhc/pages_default/enviarCertificados.dart';
+import 'package:catolica_mhc/pages_default/enviar_certificados.dart';
 import 'package:catolica_mhc/pages_default/perfil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/percent_indicator.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
-import '../functions/appLogic.dart';
+import '../functions/app_logic.dart';
 import '../services/auth_service.dart';
 import 'certificados.dart';
-import 'doughnutChart.dart';
+import 'doughnut_chart.dart';
 import 'notificacoes.dart';
 
 class DashBoard extends StatefulWidget {
-  const DashBoard({Key? key}) : super(key: key);
+  const DashBoard({super.key});
 
   @override
   State<DashBoard> createState() => _DashBoardState();
@@ -29,8 +29,8 @@ class _DashBoardState extends State<DashBoard> {
 
   late List<String> instituicaoList = <String>[];
   late List<String> imgList = <String>[];
-  late List<double> carga_horariaList = <double>[];
-  late List<String> tipo_certificacaoList = <String>[];
+  late List<double> cargaHorariaList = <double>[];
+  late List<String> tipoCertificacaoList = <String>[];
   late List<String> statusList = <String>[];
   late double percent = 0;
 
@@ -42,10 +42,9 @@ class _DashBoardState extends State<DashBoard> {
 
   @override
   void initState() {
-    getMatriculaUsuario(email, usu_curso, usu_email, usu_img_perfil, usu_nome, usu_senha, usu_num_matricula, usu_sobrenome, usu_telefone);
     getDefineDadosGrafico();
 
-    getCertificadosFirebase(matriculaList, instituicaoList, imgList, carga_horariaList, tipo_certificacaoList, statusList);
+    getCertificadosFirebase(matriculaList, instituicaoList, imgList, cargaHorariaList, tipoCertificacaoList, statusList);
     _tooltipBehavior =
         TooltipBehavior(enable: true, textStyle: const TextStyle(fontSize: 16));
     super.initState();
@@ -59,31 +58,32 @@ class _DashBoardState extends State<DashBoard> {
 
   // Pega os dados pro gráfico e organiza
   Future getDefineDadosGrafico() async {
-    await getMatriculaUsuario(email, usu_curso, usu_email, usu_img_perfil, usu_nome, usu_senha, usu_num_matricula, usu_sobrenome, usu_telefone);
+    await getMatriculaUsuario(email, usuCurso, usuEmail, usuImgPerfil, usuNome, usuSenha, usuNumMatricula, usuSobrenome, usuTelefone);
 
     final QuerySnapshot result = await Future.value(
         FirebaseFirestore.instance.collection("certificados_mhc").get());
     final List<DocumentSnapshot> documents = result.docs;
 
-    late List<double> carga_horariaUsuario = <double>[];
-    late List<String> tipo_certificadoUsuario = <String>[];
+    late List<double> cargaHorariausuario = <double>[];
+    late List<String> tipoCertificadousuario = <String>[];
 
     // Pra cada documento dentro da collection usuarios_mhc
-    documents.forEach((element) {
-      if(element.get("cert_numero_de_matricula_usu") == usu_num_matricula[0]){
-        carga_horariaUsuario.add(double.parse(element.get("cert_carga_horaria").toString()));
+    for (var element in documents) {
+      if (usuNumMatricula.isNotEmpty &&
+          element.get("cert_numero_de_matricula_usu") == usuNumMatricula[0]) {
+        cargaHorariausuario.add(double.parse(element.get("cert_carga_horaria").toString()));
         // print("Carga Horaria: $carga_horariaUsuario");
-        tipo_certificadoUsuario.add(element.get("cert_tipo_certificado").toString());
+        tipoCertificadousuario.add(element.get("cert_tipo_certificado").toString());
         // print("Tipo certificado: $tipo_certificadoUsuario");
       }
-    });
+    }
 
-    if(tipo_certificadoUsuario.length == carga_horariaUsuario.length){
-      for(int i = 0; i < tipo_certificadoUsuario.length; i++){
+    if(tipoCertificadousuario.length == cargaHorariausuario.length){
+      for(int i = 0; i < tipoCertificadousuario.length; i++){
         Map<String, String> mapTemp = {};
 
-        mapTemp['tipo_certificado'] = tipo_certificadoUsuario[i];
-        mapTemp['carga_horaria'] = carga_horariaUsuario[i].toString();
+        mapTemp['tipo_certificado'] = tipoCertificadousuario[i];
+        mapTemp['carga_horaria'] = cargaHorariausuario[i].toString();
 
         listaDeMap.add(mapTemp);
       }
@@ -113,11 +113,13 @@ class _DashBoardState extends State<DashBoard> {
 
     percent = calcularHorasFaltantes(somaDeCargaHorariaOutros, somaDeCargaHorariaEstagio, somaDeCargaHorariaPalestra);
 
-    setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
   
   // Pega os dados do certificado
-  Future getCertificadosFirebase(List<int> matriculaList,List<String> instituicaoList, List<String> imgList, List<double> carga_horariaList, List<String> tipo_certificacaoList, List<String> statusList) async {
+  Future getCertificadosFirebase(List<int> matriculaList,List<String> instituicaoList, List<String> imgList, List<double> cargaHorarialist, List<String> tipoCertificacaolist, List<String> statusList) async {
 
     final QuerySnapshot result = await Future.value(FirebaseFirestore.instance.collection("certificados_mhc").get()); //.limit(1).
 
@@ -127,11 +129,11 @@ class _DashBoardState extends State<DashBoard> {
 
     late String instituicao;
     late String img;
-    late double carga_horaria;
-    late String tipo_certificacao;
+    late double cargaHoraria;
+    late String tipoCertificacao;
     late String status;
 
-    documents.forEach((element) {
+    for (var element in documents) {
       matriculaCertificado = element.get("cert_numero_de_matricula_usu");
       matriculaList.add(matriculaCertificado);
 
@@ -141,15 +143,15 @@ class _DashBoardState extends State<DashBoard> {
       img = element.get("cert_img").toString();
       imgList.add(img);
 
-      carga_horaria = double.parse(element.get("cert_carga_horaria").toString());
-      carga_horariaList.add(carga_horaria);
+      cargaHoraria = double.parse(element.get("cert_carga_horaria").toString());
+      cargaHorarialist.add(cargaHoraria);
 
       status = element.get("cert_status").toString();
       statusList.add(status);
 
-      tipo_certificacao = element.get("cert_tipo_certificado").toString();
-      tipo_certificacaoList.add(tipo_certificacao);
-    });
+      tipoCertificacao = element.get("cert_tipo_certificado").toString();
+      tipoCertificacaolist.add(tipoCertificacao);
+    }
   }
 
   double calcularHorasFaltantes(double somaDeCargaHorariaOutros, double somaDeCargaHorariaEstagio, double somaDeCargaHorariaPalestra){
@@ -189,23 +191,21 @@ class _DashBoardState extends State<DashBoard> {
                 AuthService.to.logout();
               },
             ),
-            Container(
-              child: PopupMenuButton(
-                  iconSize: 10,
-                  icon: Image.asset("images/user_icon.png",
-                      width: 80, height: 35),
-                  itemBuilder: (context) {
-                    return [
-                      PopupMenuItem(value: 0, child: Text('Logout')),
-                    ];
-                  },
-                  onSelected: (value) {
-                    if (value == 0) {
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => CheckAuth()));
-                      AuthService.to.logout();
-                    }
-                  }),
-            )
+            PopupMenuButton(
+                iconSize: 10,
+                icon: Image.asset("images/user_icon.png",
+                    width: 80, height: 35),
+                itemBuilder: (context) {
+                  return [
+                    PopupMenuItem(value: 0, child: Text('Logout')),
+                  ];
+                },
+                onSelected: (value) {
+                  if (value == 0) {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => CheckAuth()));
+                    AuthService.to.logout();
+                  }
+                })
           ],
         ),
         backgroundColor: Colors.white,
@@ -218,12 +218,14 @@ class _DashBoardState extends State<DashBoard> {
               Container(
                   alignment: FractionalOffset.topLeft,
                   margin: EdgeInsets.only(left: 40, top: 20, bottom: 15),
-                  child: usu_nome.isEmpty ? const Center(child: CircularProgressIndicator()) : Text(
-                    "Olá, \n ${'${usu_nome.first} ${usu_sobrenome.first}'}",
-                    style: TextStyle(
-                      fontSize: 25,
-                    ),
-                  )),
+                  child: usuNome.isEmpty
+                      ? const Center(child: CircularProgressIndicator())
+                      : Text(
+                          "Olá,\n${usuNome.first} ${usuSobrenome.first}",
+                          style: const TextStyle(
+                            fontSize: 25,
+                          ),
+                        )),
               Container(
                 alignment: FractionalOffset.bottomCenter,
                 child: Text(
@@ -233,62 +235,61 @@ class _DashBoardState extends State<DashBoard> {
                   ),
                 ),
               ),
-              Stack(
-                clipBehavior: Clip.none,
-               alignment: FractionalOffset.center,
-               children: [
-                 Container(
-                   alignment: Alignment.bottomCenter,
-                   child: SfCircularChart(
-                     legend: Legend(
-                       isVisible: true,
-                       overflowMode: LegendItemOverflowMode.wrap,
-                       position: LegendPosition.bottom,
-                       textStyle: TextStyle(fontSize: 14),
-                     ),
-                     // Legenda abaixo do gráfico (default: direita)
-                     tooltipBehavior: _tooltipBehavior,
-                     series: <CircularSeries>[
-                       // Renders doughnut chart
-                       DoughnutSeries<ChartData, String>(
-                         dataSource: chartData,
-                         pointColorMapper: (ChartData data, _) => data.color,
-                         xValueMapper: (ChartData data, _) => data.x,
-                         yValueMapper: (ChartData data, _) => data.y,
-                         radius: '100%',
+              Container(
+                alignment: Alignment.bottomCenter,
+                child: SfCircularChart(
+                  legend: Legend(
+                    isVisible: true,
+                    overflowMode: LegendItemOverflowMode.wrap,
+                    position: LegendPosition.bottom,
+                    textStyle: TextStyle(fontSize: 14),
+                  ),
+                  // Legenda abaixo do gráfico (default: direita)
+                  tooltipBehavior: _tooltipBehavior,
+                  annotations: <CircularChartAnnotation>[
+                    CircularChartAnnotation(
+                      widget: Container(
+                        decoration: const BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                        child: IconButton(
+                          iconSize: 70,
+                          onPressed: () {
+                            showDialogResumoDashboard(context);
+                          },
+                          icon: const Icon(
+                            Icons.pending_actions,
+                            size: 50,
+                            color: Color.fromRGBO(255, 255, 255, 1.0),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                  series: <CircularSeries>[
+                    // Renders doughnut chart
+                    DoughnutSeries<ChartData, String>(
+                      dataSource: chartData,
+                      pointColorMapper: (ChartData data, _) => data.color,
+                      xValueMapper: (ChartData data, _) => data.x,
+                      yValueMapper: (ChartData data, _) => data.y,
+                      radius: '100%',
 
-                         dataLabelSettings: DataLabelSettings(
-                           isVisible: false,
-                           offset: Offset.fromDirection(1),
-                           textStyle: TextStyle(fontSize: 16),
-                         ),
-                         enableTooltip: true,
-                         //Liberando modificações Tooltip
+                      dataLabelSettings: DataLabelSettings(
+                        isVisible: false,
+                        offset: Offset.fromDirection(1),
+                        textStyle: TextStyle(fontSize: 16),
+                      ),
+                      enableTooltip: true,
+                      //Liberando modificações Tooltip
 
-                         explode:
-                         true, //Clicar no gráfico destaca a sua estatística
-                       ),
-                     ],
-                   ),
-
-                   // Desenvolvimento de progress bar e resumo
-                 ),
-                 Positioned(
-                   top: 88,
-                     child: Container(
-                       decoration: BoxDecoration(
-                           color: Colors.green, shape: BoxShape.circle),
-                       child: IconButton(
-                         iconSize: 70,
-                         onPressed: () {
-                           ShowDialogResumoDashboard(context);
-                         },
-                         icon: Icon(Icons.pending_actions, size: 50,
-                             color: Color.fromRGBO(255, 255, 255, 1.0)),
-                       ),
-                     ),
-                 ),
-               ]),
+                      explode:
+                          true, //Clicar no gráfico destaca a sua estatística
+                    ),
+                  ],
+                ),
+              ),
               Column(
                 children: [
                   Container(
@@ -306,7 +307,6 @@ class _DashBoardState extends State<DashBoard> {
                         '$textoProgressBar%',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      linearStrokeCap: LinearStrokeCap.roundAll,
                       progressColor: Colors.green,
                     ),
                   ),
@@ -333,10 +333,10 @@ class _DashBoardState extends State<DashBoard> {
         //Floating action button on Scaffold
         onPressed: () {
           //code to execute on button press
-          ShowModal(context);
-        },
-        child: Icon(Icons.add), //icon inside button
+          _showModal(context);
+        }, //icon inside button
         backgroundColor: Color(0xFFb81317),
+        child: Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       //floating action button position to center
@@ -429,7 +429,7 @@ class _DashBoardState extends State<DashBoard> {
 
 
   // Modal Enviar certificado
-  void ShowModal(BuildContext context) {
+  void _showModal(BuildContext context) {
     //code to execute on button press
     //botao aparece as coisas
     showModalBottomSheet<void>(
@@ -439,7 +439,7 @@ class _DashBoardState extends State<DashBoard> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(50))),
       backgroundColor: Color.fromRGBO(255, 255, 255, 1),
       builder: (BuildContext context) {
-        return Container(
+        return SizedBox(
           height: 200,
           child: Center(
             child: FractionallySizedBox(
@@ -447,29 +447,27 @@ class _DashBoardState extends State<DashBoard> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Container(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          elevation: 2,
-                          shape: StadiumBorder(),
-                          minimumSize: Size(300, 43),
-                          maximumSize: Size(300, 43),
-                          backgroundColor: Colors.red[900]),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Icon(Icons.add_chart_sharp),
-                          Text("Inserir certificado     ",
-                              style: TextStyle(fontSize: 20)),
-                        ],
-                      ),
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => EnviarCertificados()));
-                      },
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                        elevation: 2,
+                        shape: StadiumBorder(),
+                        minimumSize: Size(300, 43),
+                        maximumSize: Size(300, 43),
+                        backgroundColor: Colors.red[900]),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Icon(Icons.add_chart_sharp),
+                        Text("Inserir certificado     ",
+                            style: TextStyle(fontSize: 20)),
+                      ],
                     ),
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => EnviarCertificados()));
+                    },
                   ),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
